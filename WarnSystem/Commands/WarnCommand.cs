@@ -70,11 +70,12 @@ namespace WarnSystem.Commands
             }
             if (WarnSystem.Config.DiscordWebhookURL.StartsWith("https://discord.com/api/webhooks/"))
             {
+                Logger.Log("Sending Discord Webhook");
                 var task = DiscordWebhook.SendDiscordWebhook(WarnSystem.Config.DiscordWebhookURL, DiscordWebhook.FormatDiscordWebhook(
                     "Warn System",
-                    "https://unturnedstore.com/api/images/894",
-                    "Player Warnings Cleared",
-                    7127038,
+                    "https://unturnedstore.com/api/images/896",
+                    "Player Warned",
+                    9140721,
                     "Warn System by Gamingtoday093",
                     "https://cdn.discordapp.com/attachments/545016765885972494/907732705553317939/User.png",
                     targetplayerCharacterName,
