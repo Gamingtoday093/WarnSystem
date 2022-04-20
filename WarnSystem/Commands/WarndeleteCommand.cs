@@ -19,7 +19,7 @@ namespace WarnSystem.Commands
 
         public string Name => "Warndelete";
 
-        public string Help => "";
+        public string Help => "Delete Individual Warnings";
 
         public string Syntax => "<Player> <Index>";
 
@@ -85,7 +85,7 @@ namespace WarnSystem.Commands
             {
                 var task = DiscordWebhook.SendDiscordWebhook(WarnSystem.Config.DiscordWebhookURL, DiscordWebhook.FormatDiscordWebhook(
                     "Warn System",
-                    "https://unturnedstore.com/api/images/511",
+                    "https://unturnedstore.com/api/images/894",
                     "Player Warning Removed",
                     7127038,
                     "Warn System by Gamingtoday093",

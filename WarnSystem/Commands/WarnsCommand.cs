@@ -17,13 +17,13 @@ namespace WarnSystem.Commands
 
         public string Name => "Warnings";
 
-        public string Help => "";
+        public string Help => "View Warnings";
 
         public string Syntax => "<Player>";
 
         public List<string> Aliases => new List<string>() { "Warns" };
 
-        public List<string> Permissions => new List<string>();
+        public List<string> Permissions => new List<string>() { "WarnSystem.View" };
 
         public void Execute(IRocketPlayer caller, string[] command)
         {

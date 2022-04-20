@@ -19,7 +19,7 @@ namespace WarnSystem.Commands
 
         public string Name => "Warnclear";
 
-        public string Help => "";
+        public string Help => "Clear Warnings";
 
         public string Syntax => "<Player>";
 
@@ -72,7 +72,7 @@ namespace WarnSystem.Commands
             {
                 var task = DiscordWebhook.SendDiscordWebhook(WarnSystem.Config.DiscordWebhookURL, DiscordWebhook.FormatDiscordWebhook(
                     "Warn System",
-                    "https://unturnedstore.com/api/images/511",
+                    "https://unturnedstore.com/api/images/894",
                     "Player Warnings Cleared",
                     7127038,
                     "Warn System by Gamingtoday093",
