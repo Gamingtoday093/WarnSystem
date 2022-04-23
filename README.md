@@ -27,7 +27,7 @@ __**Warnclear**__
 `/Warnclear <Player>` **-** ***`/Warnclr`***  
 Clear **All** Warnings from a Player.  
 **Examples:**  
-*/Warnclear SpelarensNamn*  
+*/Warnclear "Spelarens Namn"*  
 */Warnclr 76561198197527013*  
   
 __**Warnings**__  
