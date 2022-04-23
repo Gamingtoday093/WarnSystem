@@ -15,7 +15,7 @@ namespace WarnSystem.Commands
 {
     class WarnclearCommand : IRocketCommand
     {
-        public AllowedCaller AllowedCaller => AllowedCaller.Player;
+        public AllowedCaller AllowedCaller => AllowedCaller.Both;
 
         public string Name => "Warnclear";
 
@@ -35,11 +35,12 @@ namespace WarnSystem.Commands
                 return;
             }
 
-            UnturnedPlayer player = (UnturnedPlayer)caller;
+            bool isConsole = caller is ConsolePlayer;
+            UnturnedPlayer player = isConsole ? null : (UnturnedPlayer)caller;
             UnturnedPlayer targetplayer = UnturnedPlayer.FromName(command[0]);
             CSteamID validCSteamID = getValidCSteamIDService.getValidCSteamID(command[0]);
 
-            if (targetplayer == null && validCSteamID == CSteamID.Nil)
+            if (targetplayer?.Player == null && validCSteamID == CSteamID.Nil)
             {
                 UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnNotFound"), WarnSystem.Instance.MessageColour);
                 return;
@@ -48,13 +49,13 @@ namespace WarnSystem.Commands
             var targetplayerCharacterName = targetplayer?.CharacterName ?? validCSteamID.ToString();
             var targetplayerCSteamID = targetplayer?.CSteamID ?? validCSteamID;
 
-            if (targetplayerCSteamID == player.CSteamID && player.IsAdmin == false)
+            if (!isConsole && targetplayerCSteamID == player.CSteamID && !player.IsAdmin)
             {
                 UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNotYourself"), WarnSystem.Instance.MessageColour);
                 return;
             }
 
-            var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.CSteamID64 == (ulong)targetplayerCSteamID);
+            var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == (ulong)targetplayerCSteamID);
             if (WarnGroup == null)
             {
                 UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
@@ -62,11 +63,13 @@ namespace WarnSystem.Commands
             }
 
             WarnSystem.Instance.WarnService.ClearWarns((ulong)targetplayerCSteamID);
-            if (targetplayer != null) UnturnedChat.Say(targetplayer, WarnSystem.Instance.Translate("WarnCSuccessTarget", player.CharacterName), WarnSystem.Instance.MessageColour);
+
+            string playerCharacterName = isConsole ? "CONSOLE" : (player.CharacterName == "CONSOLE" ? "CONSOLE (Player)" : player.CharacterName);
+            if (targetplayer?.Player != null) UnturnedChat.Say(targetplayer, WarnSystem.Instance.Translate("WarnCSuccessTarget", playerCharacterName), WarnSystem.Instance.MessageColour);
             UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnCSuccess", targetplayerCharacterName), WarnSystem.Instance.MessageColour);
             if (WarnSystem.Config.ShouldLogConsole)
             {
-                Logger.Log($"{player.CharacterName} Cleared All Warnings from {targetplayerCharacterName}");
+                Logger.Log($"{playerCharacterName} Cleared All Warnings from {targetplayerCharacterName}");
             }
             if (WarnSystem.Config.DiscordWebhookURL.StartsWith("https://discord.com/api/webhooks/"))
             {
@@ -79,7 +82,7 @@ namespace WarnSystem.Commands
                     "https://cdn.discordapp.com/attachments/545016765885972494/907732705553317939/User.png",
                     targetplayerCharacterName,
                     targetplayerCSteamID.ToString(),
-                    player.DisplayName,
+                    playerCharacterName,
                     string.Empty,
                     SteamGameServer.GetPublicIP().ToString()
                     ));

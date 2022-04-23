@@ -9,7 +9,7 @@ namespace WarnSystem.Models
 {
     public class WarnGroup
     {
-        public ulong CSteamID64 { get; set; }
+        public ulong SteamID { get; set; }
         public List<Warn> Warnings { get; set; }
     }
 }

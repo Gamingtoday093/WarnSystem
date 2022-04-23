@@ -8,12 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using WarnSystem.Services;
 using Steamworks;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace WarnSystem.Commands
 {
     public class WarnsCommand : IRocketCommand
     {
-        public AllowedCaller AllowedCaller => AllowedCaller.Player;
+        public AllowedCaller AllowedCaller => AllowedCaller.Both;
 
         public string Name => "Warnings";
 
@@ -29,9 +30,15 @@ namespace WarnSystem.Commands
         {
             if (command.Length < 1)
             {
+                if (caller is ConsolePlayer)
+                {
+                    Logger.LogError($"[WarnSystem] {WarnSystem.Instance.Translate("WarnsConsole")}");
+                    return;
+                }
+
                 UnturnedPlayer player = (UnturnedPlayer)caller;
 
-                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.CSteamID64 == (ulong)player.CSteamID);
+                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == (ulong)player.CSteamID);
                 if (WarnGroup == null)
                 {
                     UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
@@ -60,7 +67,7 @@ namespace WarnSystem.Commands
                 var targetplayerCharacterName = targetplayer?.CharacterName ?? validCSteamID.ToString();
                 var targetplayerCSteamID = targetplayer?.CSteamID ?? validCSteamID;
 
-                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.CSteamID64 == (ulong)targetplayerCSteamID);
+                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == (ulong)targetplayerCSteamID);
                 if (WarnGroup == null)
                 {
                     UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);

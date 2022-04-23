@@ -16,6 +16,8 @@ using Rocket.API;
 using Rocket.Core;
 using SDG.Unturned;
 using WarnSystem.Models;
+using Logger = Rocket.Core.Logging.Logger;
+using UnityEngine;
 
 namespace WarnSystem
 {
@@ -23,7 +25,7 @@ namespace WarnSystem
     {
         public static WarnSystem Instance { get; private set; }
         public static WarnSystemConfiguration Config { get; private set; }
-        public UnityEngine.Color MessageColour { get; private set; }
+        public Color MessageColour { get; private set; }
         public JsonDatabase JsonDatabase { get; private set; }
         public SQLDatabase SQLDatabase { get; private set; }
         public List<WarnGroup> Data =>
@@ -36,7 +38,7 @@ namespace WarnSystem
         {
             Instance = this;
             Config = Configuration.Instance;
-            MessageColour = UnturnedChat.GetColorFromName(Config.MessageColour, UnityEngine.Color.green);
+            MessageColour = UnturnedChat.GetColorFromName(Config.MessageColour, Color.green);
             DatabaseSystem = Enum.TryParse(Config.DatabaseSystem.ToUpper(), out EDatabase databaseSystem) ? databaseSystem : EDatabase.JSON;
             Logger.Log($"Using a {DatabaseSystem} Database");
 
@@ -70,9 +72,9 @@ namespace WarnSystem
             if (DatabaseSystem == EDatabase.MYSQL) SQLDatabase.SaveData();
         }
 
-        private void OnWarned(CSteamID targetSteamID)
+        private void OnWarned(CSteamID targetSteamID, CSteamID moderatorSteamID, string reason)
         {
-            var WarnGroup = Data.FirstOrDefault(x => x.CSteamID64 == (ulong)targetSteamID);
+            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == (ulong)targetSteamID);
             if (WarnGroup == null)
             {
                 Logger.LogError("[WarnSystem] Warned Player does not Exist?");
@@ -95,10 +97,10 @@ namespace WarnSystem
             switch (punishment.Type.ToLower())
             {
                 case "kick":
-                    player.Kick(Instance.Translate("WarnPunishReason", punishment.WarnThreshold));
+                    player.Kick(Translate("WarnPunishReason", punishment.WarnThreshold, reason));
                     break;
                 case "ban":
-                    player.Ban(Instance.Translate("WarnPunishReason", punishment.WarnThreshold), punishment.Duration);
+                    player.Ban(Translate("WarnPunishReason", punishment.WarnThreshold, reason), punishment.Duration);
                     break;
                 default:
                     Logger.LogError("[WarnSystem] Warn Punishment Type Does not Exist! Either use: kick or ban");
@@ -127,10 +129,20 @@ namespace WarnSystem
             { "WarnCSuccessTarget", "All of your Warnings have been Cleared by {0}!" },
 
             { "WarnsNoWarns", "You have no Warnings!" },
+            { "WarnsConsole", "The Console has no Warnings!" },
             { "WarnsList", "Warnings({0}): {1}" },
             { "WarnsListT", "{0}'s Warnings({1}): {2}" },
 
-            { "WarnPunishReason", "Warn Threshold Reached ({0})!" }
+            { "WarnPunishReason", "Warn Threshold Reached ({0})! ({1})" },
+
+            { "MigrateInvalid", "You must Specify Old Database and New Database Type!" },
+            { "MigrateFailedParse", "Failed to Parse Database Types" },
+            { "MigrateSameDB", "Old Database and New Database can't be the Same!" },
+            { "MigrateNotActive", "New Database must be the same as the Current Database Type!" },
+            { "MigrateNotLoaded", "Database hasn't been Loaded!" },
+            { "MigrateReading", "Reading from {0} Database.." },
+            { "MigrateSaving", "Saving to {0} Database.." },
+            { "MigrateSuccess", "Successfully Migrated from {0} to {1}!" }
         };
     }
 }

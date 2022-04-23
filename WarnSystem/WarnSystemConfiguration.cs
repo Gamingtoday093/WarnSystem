@@ -15,6 +15,7 @@ namespace WarnSystem
         public string DatabaseSystem { get; set; }
         public string MySQLConnectionString { get; set; }
         public bool ShouldRepeatHighestPunishmentIfAbove { get; set; }
+        public int WarnDeleteIndexOffset { get; set; }
         public bool ShouldLogConsole { get; set; }
         public string DiscordWebhookURL { get; set; }
         [XmlArrayItem("Punishment")]
@@ -25,6 +26,7 @@ namespace WarnSystem
             DatabaseSystem = "Json";
             MySQLConnectionString = "SERVER=127.0.0.1;DATABASE=unturned;UID=root;PASSWORD=123;PORT=3306;TABLENAME=warnsystem;";
             ShouldRepeatHighestPunishmentIfAbove = true;
+            WarnDeleteIndexOffset = 1;
             ShouldLogConsole = true;
             DiscordWebhookURL = "Webhook";
             Punishments = new Punishment[]
