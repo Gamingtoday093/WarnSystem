@@ -18,13 +18,13 @@ namespace WarnSystem.Commands
     {
         public AllowedCaller AllowedCaller => AllowedCaller.Both;
 
-        public string Name => "WarnView";
+        public string Name => "Warnview";
 
         public string Help => "View Warnings";
 
         public string Syntax => "<Player> <Index>";
 
-        public List<string> Aliases => new List<string>() { "WarnV" };
+        public List<string> Aliases => new List<string>() { "Warnv" };
 
         public List<string> Permissions => new List<string>() { "WarnSystem.View" };
 

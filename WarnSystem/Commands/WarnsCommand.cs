@@ -18,7 +18,7 @@ namespace WarnSystem.Commands
 
         public string Name => "Warnings";
 
-        public string Help => "View Warnings";
+        public string Help => "View a List of Warnings";
 
         public string Syntax => "<Player>";
 
