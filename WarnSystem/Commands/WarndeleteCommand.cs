@@ -69,7 +69,7 @@ namespace WarnSystem.Commands
                 return;
             }
 
-            index -= WarnSystem.Config.WarnDeleteIndexOffset;
+            index -= WarnSystem.Config.IndexOffset;
 
             if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
             {
@@ -79,7 +79,7 @@ namespace WarnSystem.Commands
 
             WarnSystem.Instance.WarnService.RemoveWarn((ulong)targetplayerCSteamID, index);
 
-            index += WarnSystem.Config.WarnDeleteIndexOffset;
+            index += WarnSystem.Config.IndexOffset;
 
             string playerCharacterName = isConsole ? "CONSOLE" : (player.CharacterName == "CONSOLE" ? "CONSOLE (Player)" : player.CharacterName);
             if (targetplayer?.Player != null) UnturnedChat.Say(targetplayer, WarnSystem.Instance.Translate("WarndelSuccessTarget", playerCharacterName), WarnSystem.Instance.MessageColour);

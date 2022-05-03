@@ -100,7 +100,8 @@ namespace WarnSystem
                     player.Kick(Translate("WarnPunishReason", punishment.WarnThreshold, reason));
                     break;
                 case "ban":
-                    player.Ban(Translate("WarnPunishReason", punishment.WarnThreshold, reason), punishment.Duration);
+                    double duration = FormatedTime.Parse(punishment.Duration);
+                    player.Ban(Translate("WarnPunishReason", punishment.WarnThreshold, reason), duration > uint.MaxValue ? uint.MaxValue : (uint)duration);
                     break;
                 default:
                     Logger.LogError("[WarnSystem] Warn Punishment Type Does not Exist! Either use: kick or ban");
@@ -132,6 +133,13 @@ namespace WarnSystem
             { "WarnsConsole", "The Console has no Warnings!" },
             { "WarnsList", "Warnings({0}): {1}" },
             { "WarnsListT", "{0}'s Warnings({1}): {2}" },
+
+            { "WarnVInvalid", "You must Specify Warn Index!" },
+            { "WarnVSuccess", "Viewing Your Warning {0}:" },
+            { "WarnVSuccessT", "Viewing {0}'s Warning {1}:" },
+            { "WarnVModerator", "Moderator: {0}" },
+            { "WarnVDateTime", "Time: {0} ({1} Ago)" },
+            { "WarnVReason", "Reason: {0}" },
 
             { "WarnPunishReason", "Warn Threshold Reached ({0})! ({1})" },
 

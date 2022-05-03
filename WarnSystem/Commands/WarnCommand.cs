@@ -58,9 +58,7 @@ namespace WarnSystem.Commands
                 return;
             }
 
-            List<string> reasonArray = new List<string>(command);
-            reasonArray.RemoveAt(0);
-            string reason = string.Join(" ", reasonArray);
+            string reason = string.Join(" ", command.Skip(1));
 
             WarnSystem.Instance.WarnService.RegisterWarn((ulong)targetplayerCSteamID, (ulong)(isConsole ? CSteamID.Nil : player.CSteamID), reason);
 
