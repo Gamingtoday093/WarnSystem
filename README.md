@@ -17,8 +17,8 @@ Warn Players, Warn Reason is **automatically** combined.
   
 __**Warndelete**__  
 `/Warndelete <Player> <Index>` **-** ***`/Warndel`***  
-Delete Accidental Warnings, Index corresponds to the index of the List.  
-Meaning index  *0* is the **First** item and index *1* is the **Second** Item *etc.*  
+Delete Accidental Warnings, Index corresponds to the index of the List + the Offset in the Configuration File.  
+Meaning with default settings index *1* is the **First** item and index *2* is the **Second** Item *etc.*  
 **Examples:**  
 */Warndelete NameOfPlayer 0*  
 */Warndel 76561198169868943 7*  
@@ -27,7 +27,7 @@ __**Warnclear**__
 `/Warnclear <Player>` **-** ***`/Warnclr`***  
 Clear **All** Warnings from a Player.  
 **Examples:**  
-*/Warnclear SpelarensNamn*  
+*/Warnclear "Spelarens Namn"*  
 */Warnclr 76561198197527013*  
   
 __**Warnings**__  
@@ -49,11 +49,11 @@ __Migration__
 *MigrationCommand:* `/WSMigrateDB <Old Database> <New Database>`  
 1. Begin by changing your `DatabaseSystem` in your Configuration file to your desired New Database.
 2. Next Load the WarnSystem Plugin.
-3. Once the Database has been Loaded simply start the Database Migration by using the MigrationCommand in the **Console**.
-4. You're Done when the Plugin Logs that the Migration is Done!  
+3. Once the Database has been Loaded simply start the Database Migration by using the MigrationCommand.
+4. You're Done when the Plugin Writes that the Migration is Done!  
   
 <u>Example</u> **-** Migrating from **Json** to **MySQL**  
 *WSMigrateDB Json MySQL*  
-*WarnSystem >> Reading from JSON Database..*  
-*WarnSystem >> Saving to MYSQL Database..*  
-*WarnSystem >> Successfully Migrated from JSON to MYSQL!*  
+*Reading from JSON Database..*  
+*Saving to MYSQL Database..*  
+*Successfully Migrated from JSON to MYSQL!*  
