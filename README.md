@@ -18,9 +18,9 @@ Warn Players, Warn Reason is **automatically** combined.
 __**Warndelete**__  
 `/Warndelete <Player> <Index>` **-** ***`/Warndel`***  
 Delete Accidental Warnings, Index corresponds to the index of the List + the Offset in the Configuration File.  
-Meaning with default settings index *1* is the **First** item and index *2* is the **Second** Item *etc.*  
+Meaning with default settings index *1* is the **First** item and index *2* is the **Second** item *etc.*  
 **Examples:**  
-*/Warndelete NameOfPlayer 0*  
+*/Warndelete NameOfPlayer 1*  
 */Warndel 76561198169868943 7*  
   
 __**Warnclear**__  
@@ -32,13 +32,33 @@ Clear **All** Warnings from a Player.
   
 __**Warnings**__  
 `/Warnings <Player>` **-** ***`/Warns`***  
-View Your or another Player's Warnings.  
+View a List of Your or another Player's Warnings.  
 **Examples:**  
 */Warnings*  
-*/Warns 76561198209939643*
+*/Warns 76561198209939643*  
+  
+__**Warnview**__  
+`/Warnview <Player> <Index>` **-** ***`/Warnv`***  
+View Your or another Player's Warnings.  
+**Examples:**  
+*/Warnview 3*  
+*/Warnv ObamaGaming 1*
 #### Permissions
 `WarnSystem.Warn` **-** Gives Access to; `/Warn` `/Warndelete` `/Warnclear` & Aliases  
-`WarnSystem.View` **-** Gives Access to; `/Warnings` & Aliases
+`WarnSystem.View` **-** Gives Access to; `/Warnings` `/Warnview` & Aliases
+
+### Rich Durations
+__Supported Duration Abrivations__  
+`s` **-** Seconds  
+`min` **-** Minutes  
+`h` **-** Hours  
+`d` **-** Days  
+`w` **-** Weeks  
+`m` **-** Months  
+`y` **-** Years  
+**Examples:**  
+*8d240* **-** 8 Days and 240 Seconds  
+*2h3d20min1* **-** 3 Days 2 Hours 20 Minutes and 1 Second  
 
 ### Databases & Migration
 __Supported Databases__  
