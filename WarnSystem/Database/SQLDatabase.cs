@@ -18,14 +18,16 @@ namespace WarnSystem.Database
             "`SteamId` VARCHAR(32) NOT NULL DEFAULT '0', " +
             "`ModeratorSteamId` VARCHAR(32) NOT NULL DEFAULT '0', " +
             "`DateTime` VARCHAR(28) NOT NULL," +
-            "`Reason` TEXT NOT NULL DEFAULT '', " +
+            "`Reason` TEXT NOT NULL, " +
             "PRIMARY KEY (Id)";
 
         private SQLStorage<List<Warn>> SQLStorage { get; set; }
         public List<WarnGroup> Data { get; private set; }
+        private List<Warn> DeletedData { get; set; }
         public SQLDatabase()
         {
             SQLStorage = new SQLStorage<List<Warn>>(WarnSystem.Config.MySQLConnectionString);
+            DeletedData = new List<Warn>();
         }
 
         private List<WarnGroup> ConvertData(List<Warn> warns)
@@ -68,10 +70,10 @@ namespace WarnSystem.Database
                 ExistingWarns.Add(warn);
                 Task.Run(async () => await SQLStorage.InsertAsync(warn));
             }
-            foreach (Warn warn in ExistingWarns)
+            foreach (Warn warn in DeletedData)
             {
-                if (Warns.Any(w => w.owner == warn.owner && w.moderatorSteamID64 == warn.moderatorSteamID64 && w.dateTime == warn.dateTime && w.reason == warn.reason)) continue;
-                Task.Run(async () => await SQLStorage.DeleteAsync(warn));
+                if (ExistingWarns.Any(w => w.owner == warn.owner && w.moderatorSteamID64 == warn.moderatorSteamID64 && w.dateTime == warn.dateTime && w.reason == warn.reason))
+                    Task.Run(async () => await SQLStorage.DeleteAsync(warn));
             }
         }
 
@@ -115,6 +117,7 @@ namespace WarnSystem.Database
                 return;
             }
 
+            DeletedData.Add(WarnGroup.Warnings[index]);
             WarnGroup.Warnings.RemoveAt(index);
             if (WarnGroup.Warnings.Count == 0)
             {
@@ -138,6 +141,7 @@ namespace WarnSystem.Database
         public void SetSaveData(List<WarnGroup> newData)
         {
             Data = newData;
+            DeletedData = new List<Warn>();
             SaveData();
         }
     }

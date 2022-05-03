@@ -15,7 +15,7 @@ namespace WarnSystem
         public string DatabaseSystem { get; set; }
         public string MySQLConnectionString { get; set; }
         public bool ShouldRepeatHighestPunishmentIfAbove { get; set; }
-        public int WarnDeleteIndexOffset { get; set; }
+        public int IndexOffset { get; set; }
         public bool ShouldLogConsole { get; set; }
         public string DiscordWebhookURL { get; set; }
         [XmlArrayItem("Punishment")]
@@ -26,7 +26,7 @@ namespace WarnSystem
             DatabaseSystem = "Json";
             MySQLConnectionString = "SERVER=127.0.0.1;DATABASE=unturned;UID=root;PASSWORD=123;PORT=3306;TABLENAME=warnsystem;";
             ShouldRepeatHighestPunishmentIfAbove = true;
-            WarnDeleteIndexOffset = 1;
+            IndexOffset = 1;
             ShouldLogConsole = true;
             DiscordWebhookURL = "Webhook";
             Punishments = new Punishment[]
@@ -40,31 +40,31 @@ namespace WarnSystem
                 {
                     WarnThreshold = 3,
                     Type = "ban",
-                    Duration = 300
+                    Duration = "300"
                 },
                 new Punishment()
                 {
                     WarnThreshold = 4,
                     Type = "ban",
-                    Duration = 1800
+                    Duration = "30min"
                 },
                 new Punishment()
                 {
                     WarnThreshold = 5,
                     Type = "ban",
-                    Duration = 86400
+                    Duration = "1d"
                 },
                 new Punishment()
                 {
                     WarnThreshold = 6,
                     Type = "ban",
-                    Duration = 604800
+                    Duration = "1w"
                 },
                 new Punishment()
                 {
                     WarnThreshold = 7,
                     Type = "ban",
-                    Duration = 15778463
+                    Duration = "15778463"
                 }
             };
         }
