@@ -8,6 +8,6 @@ namespace WarnSystem.Models
         public int WarnThreshold { get; set; }
         [XmlAttribute("Type")]
         public string Type { get; set; }
-        public string Duration { get; set; }
+        public uint Duration { get; set; }
     }
 }

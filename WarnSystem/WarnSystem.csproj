@@ -127,7 +127,6 @@
     <Compile Include="Commands\WarnCommand.cs" />
     <Compile Include="Commands\WarndeleteCommand.cs" />
     <Compile Include="Commands\WarnsCommand.cs" />
-    <Compile Include="Commands\WarnViewCommand.cs" />
     <Compile Include="Connections\DiscordWebhook.cs" />
     <Compile Include="Database\SQLDatabase.cs" />
     <Compile Include="Database\JsonDatabase.cs" />
@@ -136,7 +135,6 @@
     <Compile Include="Models\Punishment.cs" />
     <Compile Include="Models\Warn.cs" />
     <Compile Include="Models\WarnGroup.cs" />
-    <Compile Include="Services\FormatedTime.cs" />
     <Compile Include="Services\getValidCSteamIDService.cs" />
     <Compile Include="Services\WarnService.cs" />
     <Compile Include="Storage\DataStorage.cs" />
