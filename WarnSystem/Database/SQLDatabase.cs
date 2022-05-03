@@ -18,7 +18,7 @@ namespace WarnSystem.Database
             "`SteamId` VARCHAR(32) NOT NULL DEFAULT '0', " +
             "`ModeratorSteamId` VARCHAR(32) NOT NULL DEFAULT '0', " +
             "`DateTime` VARCHAR(28) NOT NULL," +
-            "`Reason` TEXT NOT NULL, " +
+            "`Reason` TEXT NOT NULL," +
             "PRIMARY KEY (Id)";
 
         private SQLStorage<List<Warn>> SQLStorage { get; set; }
@@ -27,7 +27,6 @@ namespace WarnSystem.Database
         public SQLDatabase()
         {
             SQLStorage = new SQLStorage<List<Warn>>(WarnSystem.Config.MySQLConnectionString);
-            DeletedData = new List<Warn>();
         }
 
         private List<WarnGroup> ConvertData(List<Warn> warns)
@@ -81,6 +80,7 @@ namespace WarnSystem.Database
         {
             SQLStorage.CreateDatabase();
             SQLStorage.CreateTable(CreateTableQuery);
+            DeletedData = new List<Warn>();
             Logger.Log("Loading MySQL Database..");
             ThreadPool.QueueUserWorkItem(async (_) => {
                 var read = await SQLStorage.ReadAsync();
