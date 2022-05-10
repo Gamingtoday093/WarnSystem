@@ -65,6 +65,10 @@ __Supported Databases__
 `Json` **-** Libraries are **NOT** Required if you use this Database Type  
 `MySQL` **-** Libraries **ARE** Required if you use this Database Type  
   
+__Recommended Settings for Multiple Server Usage__  
+`ShouldCacheMySQLData` **:** *false* **-** If set to **True** will make the Plugin cache the MySQL Data. Ideal for Single Server Usage since it may be Considerably faster, However it **will** cause desync issues if the Data is shared Across Multiple Servers.  
+`ReplicateSharedServersPunishments` **:** *true* **-** If set to **True** will make the Plugin give out possible Punishments upon Joining. Kick Punishments are **Not** Replicated. Ban Punishment's durations **Are** Replicated. Keep in mind that this **Will** override manual Unbans.
+  
 __Migration__  
 *MigrationCommand:* `/WSMigrateDB <Old Database> <New Database>`  
 1. Begin by changing your `DatabaseSystem` in your Configuration file to your desired New Database.
