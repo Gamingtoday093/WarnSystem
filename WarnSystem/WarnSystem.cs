@@ -18,6 +18,9 @@ using SDG.Unturned;
 using WarnSystem.Models;
 using Logger = Rocket.Core.Logging.Logger;
 using UnityEngine;
+using Rocket.Unturned;
+using System.Threading;
+using Rocket.Core.Utils;
 
 namespace WarnSystem
 {
@@ -43,6 +46,7 @@ namespace WarnSystem
             Logger.Log($"Using a {DatabaseSystem} Database");
 
             WarnCommand.OnWarn += OnWarned;
+            U.Events.OnPlayerConnected += PunishPlayerOnJoin;
 
             JsonDatabase = new JsonDatabase();
             if (DatabaseSystem == EDatabase.JSON) JsonDatabase.Reload();
@@ -58,6 +62,7 @@ namespace WarnSystem
         protected override void Unload()
         {
             WarnCommand.OnWarn -= OnWarned;
+            U.Events.OnPlayerConnected -= PunishPlayerOnJoin;
 
             Destroy(WarnService);
 
@@ -69,18 +74,39 @@ namespace WarnSystem
         private void SaveDatabases()
         {
             if (DatabaseSystem == EDatabase.JSON) JsonDatabase.SaveData();
-            if (DatabaseSystem == EDatabase.MYSQL) SQLDatabase.SaveData();
+            if (DatabaseSystem == EDatabase.MYSQL) SQLDatabase.SaveData(Data);
         }
 
-        private void OnWarned(CSteamID targetSteamID, CSteamID moderatorSteamID, string reason)
+        private void PunishPlayerOnJoin(UnturnedPlayer player)
         {
-            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == (ulong)targetSteamID);
-            if (WarnGroup == null)
-            {
-                Logger.LogError("[WarnSystem] Warned Player does not Exist?");
-                return;
-            }
+            if (!Config.ReplicateSharedServersPunishments) return;
+            OnWarned(player.CSteamID, CSteamID.Nil, null);
+        }
 
+        public void OnWarned(CSteamID targetSteamID, CSteamID moderatorSteamID, string reason)
+        {
+            if (DatabaseSystem == EDatabase.MYSQL && !Config.ShouldCacheMySQLData)
+            {
+                ThreadPool.QueueUserWorkItem(async (_) =>
+                {
+                    var WarnGroup = await SQLDatabase.GetWarnGroupAsync(targetSteamID.m_SteamID);
+                    TaskDispatcher.QueueOnMainThread(() =>
+                    {
+                        if (WarnGroup == null) return;
+                        PunishPlayer(WarnGroup, reason);
+                    });
+                });
+            }
+            else
+            {
+                var WarnGroup = Data.FirstOrDefault(x => x.SteamID == targetSteamID.m_SteamID);
+                if (WarnGroup == null) return;
+                PunishPlayer(WarnGroup, reason);
+            }
+        }
+
+        private void PunishPlayer(WarnGroup WarnGroup, string Reason)
+        {
             Punishment punishment = null;
             if (Config.ShouldRepeatHighestPunishmentIfAbove && Config.Punishments.LastOrDefault()?.WarnThreshold < WarnGroup.Warnings.Count)
             {
@@ -92,16 +118,26 @@ namespace WarnSystem
             }
             if (punishment == null) return;
 
-            UnturnedPlayer player = UnturnedPlayer.FromCSteamID(targetSteamID);
+            UnturnedPlayer player = UnturnedPlayer.FromCSteamID(new CSteamID(WarnGroup.SteamID));
+
+            bool ReasonNoExist = string.IsNullOrEmpty(Reason);
+            Warn LatestWarn = WarnGroup.Warnings.OrderByDescending(w => w.dateTime).First();
+            Reason = ReasonNoExist ? LatestWarn.reason : Reason;
 
             switch (punishment.Type.ToLower())
             {
                 case "kick":
-                    player.Kick(Translate("WarnPunishReason", punishment.WarnThreshold, reason));
+                    if (ReasonNoExist || player?.Player == null) return;
+                    player.Kick(Translate("WarnPunishReason", punishment.WarnThreshold, Reason));
                     break;
                 case "ban":
-                    double duration = FormatedTime.Parse(punishment.Duration);
-                    player.Ban(Translate("WarnPunishReason", punishment.WarnThreshold, reason), duration > uint.MaxValue ? uint.MaxValue : (uint)duration);
+                    double duration = ReasonNoExist ? FormatedTime.Parse(punishment.Duration) - (DateTimeOffset.Now - LatestWarn.dateTime).TotalSeconds : FormatedTime.Parse(punishment.Duration);
+                    if (duration <= uint.MinValue) return;
+                    Provider.requestBanPlayer(CSteamID.Nil,
+                        new CSteamID(WarnGroup.SteamID),
+                        SDG.Unturned.SteamGameServerNetworkingUtils.getIPv4AddressOrZero(new CSteamID(WarnGroup.SteamID)),
+                        Translate("WarnPunishReason", punishment.WarnThreshold, Reason),
+                        duration > uint.MaxValue ? uint.MaxValue : (uint)duration);
                     break;
                 default:
                     Logger.LogError("[WarnSystem] Warn Punishment Type Does not Exist! Either use: kick or ban");

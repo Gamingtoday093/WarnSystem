@@ -14,6 +14,8 @@ namespace WarnSystem
         public string MessageColour { get; set; }
         public string DatabaseSystem { get; set; }
         public string MySQLConnectionString { get; set; }
+        public bool ShouldCacheMySQLData { get; set; }
+        public bool ReplicateSharedServersPunishments { get; set; }
         public bool ShouldRepeatHighestPunishmentIfAbove { get; set; }
         public int IndexOffset { get; set; }
         public bool ShouldLogConsole { get; set; }
@@ -25,6 +27,8 @@ namespace WarnSystem
             MessageColour = "yellow";
             DatabaseSystem = "Json";
             MySQLConnectionString = "SERVER=127.0.0.1;DATABASE=unturned;UID=root;PASSWORD=123;PORT=3306;TABLENAME=warnsystem;";
+            ShouldCacheMySQLData = true;
+            ReplicateSharedServersPunishments = false;
             ShouldRepeatHighestPunishmentIfAbove = true;
             IndexOffset = 1;
             ShouldLogConsole = true;

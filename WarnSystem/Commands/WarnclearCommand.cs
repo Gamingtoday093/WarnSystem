@@ -1,5 +1,6 @@
 ﻿using Rocket.API;
 using Rocket.Core.Logging;
+using Rocket.Core.Utils;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using Steamworks;
@@ -7,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WarnSystem.Connections;
+using WarnSystem.Models;
 using WarnSystem.Services;
 
 namespace WarnSystem.Commands
@@ -55,14 +58,35 @@ namespace WarnSystem.Commands
                 return;
             }
 
-            var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == (ulong)targetplayerCSteamID);
-            if (WarnGroup == null)
+            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL && !WarnSystem.Config.ShouldCacheMySQLData)
             {
-                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
-                return;
-            }
+                bool ShouldReturn = false;
+                ThreadPool.QueueUserWorkItem(async (_) => {
+                    var WarnGroup = await WarnSystem.Instance.SQLDatabase.GetWarnGroupAsync(targetplayerCSteamID.m_SteamID);
+                    TaskDispatcher.QueueOnMainThread(() => {
+                        if (WarnGroup == null)
+                        {
+                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
+                            ShouldReturn = true;
+                            return;
+                        }
 
-            WarnSystem.Instance.WarnService.ClearWarns((ulong)targetplayerCSteamID);
+                        WarnSystem.Instance.WarnService.ClearWarns(WarnGroup);
+                    });
+                });
+                if (ShouldReturn) return;
+            }
+            else
+            {
+                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
+                if (WarnGroup == null)
+                {
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
+                    return;
+                }
+
+                WarnSystem.Instance.WarnService.ClearWarns(WarnGroup);
+            }
 
             string playerCharacterName = isConsole ? "CONSOLE" : (player.CharacterName == "CONSOLE" ? "CONSOLE (Player)" : player.CharacterName);
             if (targetplayer?.Player != null) UnturnedChat.Say(targetplayer, WarnSystem.Instance.Translate("WarnCSuccessTarget", playerCharacterName), WarnSystem.Instance.MessageColour);

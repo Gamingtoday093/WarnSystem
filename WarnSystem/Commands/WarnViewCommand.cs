@@ -11,6 +11,8 @@ using Rocket.Unturned.Player;
 using Rocket.Unturned.Chat;
 using WarnSystem.Models;
 using SDG.Unturned;
+using System.Threading;
+using Rocket.Core.Utils;
 
 namespace WarnSystem.Commands
 {
@@ -52,24 +54,52 @@ namespace WarnSystem.Commands
                     return;
                 }
 
-                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == (ulong)player.CSteamID);
-                if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
+                if (WarnSystem.DatabaseSystem == EDatabase.MYSQL && !WarnSystem.Config.ShouldCacheMySQLData)
                 {
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
-                    return;
+                    ThreadPool.QueueUserWorkItem(async (_) =>
+                    {
+                        var WarnGroup = await WarnSystem.Instance.SQLDatabase.GetWarnGroupAsync(player.CSteamID.m_SteamID);
+                        TaskDispatcher.QueueOnMainThread(() =>
+                        {
+                            if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
+                            {
+                                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
+                                return;
+                            }
+
+                            index -= WarnSystem.Config.IndexOffset;
+
+                            if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
+                            {
+                                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
+                                return;
+                            }
+
+                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnVSuccess", index + WarnSystem.Config.IndexOffset), WarnSystem.Instance.MessageColour);
+                            ViewWarning(caller, WarnGroup.Warnings[index]);
+                        });
+                    });
                 }
-
-                index -= WarnSystem.Config.IndexOffset;
-
-                if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
+                else
                 {
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
-                    return;
-                }
+                    var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == player.CSteamID.m_SteamID);
+                    if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
+                    {
+                        UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
+                        return;
+                    }
 
-                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnVSuccess", index + WarnSystem.Config.IndexOffset), WarnSystem.Instance.MessageColour);
-                ViewWarning(caller, WarnGroup.Warnings[index]);
-                return;
+                    index -= WarnSystem.Config.IndexOffset;
+
+                    if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
+                    {
+                        UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
+                        return;
+                    }
+
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnVSuccess", index + WarnSystem.Config.IndexOffset), WarnSystem.Instance.MessageColour);
+                    ViewWarning(caller, WarnGroup.Warnings[index]);
+                }
             }
             else
             {
@@ -91,24 +121,52 @@ namespace WarnSystem.Commands
                     return;
                 }
 
-                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == (ulong)targetplayerCSteamID);
-                if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
+                if (WarnSystem.DatabaseSystem == EDatabase.MYSQL && !WarnSystem.Config.ShouldCacheMySQLData)
                 {
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
-                    return;
+                    ThreadPool.QueueUserWorkItem(async (_) =>
+                    {
+                        var WarnGroup = await WarnSystem.Instance.SQLDatabase.GetWarnGroupAsync(targetplayerCSteamID.m_SteamID);
+                        TaskDispatcher.QueueOnMainThread(() =>
+                        {
+                            if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
+                            {
+                                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
+                                return;
+                            }
+
+                            index -= WarnSystem.Config.IndexOffset;
+
+                            if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
+                            {
+                                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
+                                return;
+                            }
+
+                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnVSuccessT", targetplayerCharacterName, index + WarnSystem.Config.IndexOffset), WarnSystem.Instance.MessageColour);
+                            ViewWarning(caller, WarnGroup.Warnings[index]);
+                        });
+                    });
                 }
-
-                index -= WarnSystem.Config.IndexOffset;
-
-                if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
+                else
                 {
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
-                    return;
-                }
+                    var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
+                    if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
+                    {
+                        UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
+                        return;
+                    }
 
-                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnVSuccessT", targetplayerCharacterName, index + WarnSystem.Config.IndexOffset), WarnSystem.Instance.MessageColour);
-                ViewWarning(caller, WarnGroup.Warnings[index]);
-                return;
+                    index -= WarnSystem.Config.IndexOffset;
+
+                    if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
+                    {
+                        UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
+                        return;
+                    }
+
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnVSuccessT", targetplayerCharacterName, index + WarnSystem.Config.IndexOffset), WarnSystem.Instance.MessageColour);
+                    ViewWarning(caller, WarnGroup.Warnings[index]);
+                }
             }
         }
 

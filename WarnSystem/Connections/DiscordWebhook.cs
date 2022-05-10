@@ -4,6 +4,7 @@ using Rocket.Core.Logging;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO;
+using Rocket.Core.Utils;
 
 namespace WarnSystem.Connections
 {
@@ -27,7 +28,10 @@ namespace WarnSystem.Connections
             }
             catch (WebException we)
             {
-                Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Failed to Post to Discord API - {we}");
+                TaskDispatcher.QueueOnMainThread(() => 
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Failed to Post to Discord API (Status: {we.Status}) - {we}");
+                });
             }
         }
 

@@ -14,30 +14,30 @@ namespace WarnSystem.Services
         public JsonDatabase JsonDatabase => WarnSystem.Instance.JsonDatabase;
         public SQLDatabase SQLDatabase => WarnSystem.Instance.SQLDatabase;
 
-        public void RegisterWarn(ulong CSteamID64, ulong ModeratorSteamID64, string Reason)
+        public void RegisterWarn(ulong SteamID64, ulong ModeratorSteamID64, string Reason)
         {
             var Warn = new Warn()
             {
-                owner = CSteamID64,
+                owner = SteamID64,
                 moderatorSteamID64 = ModeratorSteamID64,
                 dateTime = DateTimeOffset.Now,
                 reason = Reason
             };
 
-            if (WarnSystem.DatabaseSystem == EDatabase.JSON) JsonDatabase.AddWarn(CSteamID64, Warn);
-            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL) SQLDatabase.AddWarn(CSteamID64, Warn);
+            if (WarnSystem.DatabaseSystem == EDatabase.JSON) JsonDatabase.AddWarn(Warn);
+            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL) SQLDatabase.AddWarn(Warn);
         }
 
-        public void RemoveWarn(ulong cSteamID64, int index)
+        public void RemoveWarn(int index, WarnGroup warnGroup)
         {
-            if (WarnSystem.DatabaseSystem == EDatabase.JSON) JsonDatabase.RemoveWarn(cSteamID64, index);
-            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL) SQLDatabase.RemoveWarn(cSteamID64, index);
+            if (WarnSystem.DatabaseSystem == EDatabase.JSON) JsonDatabase.RemoveWarn(index, warnGroup);
+            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL) SQLDatabase.RemoveWarn(index, warnGroup);
         }
 
-        public void ClearWarns(ulong cSteamID64)
+        public void ClearWarns(WarnGroup warnGroup)
         {
-            if (WarnSystem.DatabaseSystem == EDatabase.JSON) JsonDatabase.ClearWarns(cSteamID64);
-            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL) SQLDatabase.ClearWarns(cSteamID64);
+            if (WarnSystem.DatabaseSystem == EDatabase.JSON) JsonDatabase.ClearWarns(warnGroup);
+            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL) SQLDatabase.ClearWarns(warnGroup);
         }
     }
 }

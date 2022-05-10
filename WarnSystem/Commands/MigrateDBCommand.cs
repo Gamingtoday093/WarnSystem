@@ -51,7 +51,7 @@ namespace WarnSystem.Commands
                 return;
             }
 
-            if (WarnSystem.Instance.Data == null)
+            if (WarnSystem.Instance.Data == null && WarnSystem.Config.ShouldCacheMySQLData && WarnSystem.DatabaseSystem == EDatabase.MYSQL)
             {
                 UnturnedChat.Say(caller, WarnSystem.Instance.Translate("MigrateNotLoaded"), WarnSystem.Instance.MessageColour);
                 return;

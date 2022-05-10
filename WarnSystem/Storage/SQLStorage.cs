@@ -7,13 +7,14 @@ using MySql.Data.MySqlClient;
 using WarnSystem.Models;
 using Logger = Rocket.Core.Logging.Logger;
 using System.Reflection;
+using Rocket.Core.Utils;
 
 namespace WarnSystem.Storage
 {
     public class SQLStorage<T> where T : class
     {
-        public string ConnectionString { get; set; }
-        public string TableName { get; set; }
+        private string ConnectionString { get; set; }
+        private string TableName { get; set; }
         public SQLStorage(string connectionString)
         {
             ConnectionString = GetConnectionValue(connectionString, "TABLENAME=", true);
@@ -50,7 +51,10 @@ namespace WarnSystem.Storage
             }
             catch (Exception e)
             {
-                Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Creating Database: {e}");
+                TaskDispatcher.QueueOnMainThread(() =>
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Creating Database: {e}");
+                });    
             }
         }
 
@@ -70,7 +74,10 @@ namespace WarnSystem.Storage
             }
             catch (Exception e)
             {
-                Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Creating Database Table: {e}");
+                TaskDispatcher.QueueOnMainThread(() =>
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Creating Database Table: {e}");
+                });
             }
         }
 
@@ -103,7 +110,10 @@ namespace WarnSystem.Storage
             }
             catch (Exception e)
             {
-                Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Reading Database: {e}");
+                TaskDispatcher.QueueOnMainThread(() =>
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Reading Database: {e}");
+                });
             }
             return warns;
         }
@@ -135,7 +145,46 @@ namespace WarnSystem.Storage
             }
             catch (Exception e)
             {
-                Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Reading Database: {e}");
+                TaskDispatcher.QueueOnMainThread(() =>
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Reading Database: {e}");
+                });
+            }
+            return warns;
+        }
+
+        public async Task<List<Warn>> ReadWarnsAsync(ulong SteamID)
+        {
+            List<Warn> warns = new List<Warn>();
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+                {
+                    await connection.OpenAsync();
+                    MySqlCommand command = new MySqlCommand($"SELECT * FROM `{TableName}` WHERE `SteamId`=@0;", connection);
+                    command.Parameters.AddWithValue("@0", SteamID);
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            warns.Add(new Warn()
+                            {
+                                owner = ulong.Parse(reader["SteamId"].ToString()),
+                                moderatorSteamID64 = ulong.Parse(reader["ModeratorSteamId"].ToString()),
+                                dateTime = DateTimeOffset.Parse(reader["DateTime"].ToString()),
+                                reason = reader["Reason"].ToString()
+                            });
+                        }
+                    }
+                    await connection.CloseAsync();
+                }
+            }
+            catch (Exception e)
+            {
+                TaskDispatcher.QueueOnMainThread(() =>
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Reading Database: {e}");
+                });
             }
             return warns;
         }
@@ -160,7 +209,10 @@ namespace WarnSystem.Storage
             }
             catch (Exception e)
             {
-                Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error Inserting into Database: {e}");
+                TaskDispatcher.QueueOnMainThread(() =>
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error Inserting into Database: {e}");
+                });
             }
         }
 
@@ -184,7 +236,10 @@ namespace WarnSystem.Storage
             }
             catch (Exception e)
             {
-                Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Deleting from Database: {e}");
+                TaskDispatcher.QueueOnMainThread(() =>
+                {
+                    Logger.LogError($"[{Assembly.GetExecutingAssembly().FullName.Split(',')[0]}] Error when Deleting from Database: {e}");
+                });
             }
         }
     }

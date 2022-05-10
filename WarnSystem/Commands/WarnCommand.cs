@@ -11,6 +11,7 @@ using WarnSystem.Events;
 using WarnSystem.Connections;
 using Steamworks;
 using WarnSystem.Services;
+using WarnSystem.Models;
 
 namespace WarnSystem.Commands
 {
@@ -60,7 +61,7 @@ namespace WarnSystem.Commands
 
             string reason = string.Join(" ", command.Skip(1));
 
-            WarnSystem.Instance.WarnService.RegisterWarn((ulong)targetplayerCSteamID, (ulong)(isConsole ? CSteamID.Nil : player.CSteamID), reason);
+            WarnSystem.Instance.WarnService.RegisterWarn(targetplayerCSteamID.m_SteamID, (ulong)(isConsole ? CSteamID.Nil : player.CSteamID), reason);
 
             string playerCharacterName = isConsole ? "CONSOLE" : (player.CharacterName == "CONSOLE" ? "CONSOLE (Player)" : player.CharacterName);
             if (targetplayer?.Player != null) UnturnedChat.Say(targetplayer, WarnSystem.Instance.Translate("WarnSuccessTarget", playerCharacterName, reason), WarnSystem.Instance.MessageColour);
@@ -89,6 +90,7 @@ namespace WarnSystem.Commands
                 
                 Task.Run(async() => await task);
             }
+            if (WarnSystem.DatabaseSystem == EDatabase.MYSQL && !WarnSystem.Config.ShouldCacheMySQLData) return;
             OnWarn.Invoke(targetplayerCSteamID, isConsole ? CSteamID.Nil : player.CSteamID, reason);
         }
     }

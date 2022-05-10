@@ -8,6 +8,8 @@ using MySql.Data.MySqlClient;
 using WarnSystem.Storage;
 using Rocket.Core.Logging;
 using System.Threading;
+using Rocket.Core.Utils;
+using Steamworks;
 
 namespace WarnSystem.Database
 {
@@ -57,13 +59,12 @@ namespace WarnSystem.Database
             return ConvertData(SQLStorage.Read());
         }
 
-        public void SaveData()
+        public void SaveData(List<WarnGroup> data)
         {
-            if (Data == null) return;
-            List<Warn> Warns = Data.SelectMany(w => w.Warnings).ToList();
+            if (data == null) return;
             List<Warn> ExistingWarns = SQLStorage.Read();
 
-            foreach (Warn warn in Warns)
+            foreach (Warn warn in data.SelectMany(w => w.Warnings))
             {
                 if (ExistingWarns.Any(w => w.owner == warn.owner && w.moderatorSteamID64 == warn.moderatorSteamID64 && w.dateTime == warn.dateTime && w.reason == warn.reason)) continue;
                 ExistingWarns.Add(warn);
@@ -81,23 +82,38 @@ namespace WarnSystem.Database
             SQLStorage.CreateDatabase();
             SQLStorage.CreateTable(CreateTableQuery);
             DeletedData = new List<Warn>();
+            if (!WarnSystem.Config.ShouldCacheMySQLData) return;
             Logger.Log("Loading MySQL Database..");
             ThreadPool.QueueUserWorkItem(async (_) => {
                 var read = await SQLStorage.ReadAsync();
                 Data = ConvertData(read);
-                Logger.LogWarning("WarnSystem >> MySQL Database has been Loaded!");
+                TaskDispatcher.QueueOnMainThread(() => {
+                    Logger.LogWarning("WarnSystem >> MySQL Database has been Loaded!");
+                });
             });
         }
 
-        public void AddWarn(ulong SteamID, Warn warn)
+        public void AddWarn(Warn warn)
         {
+            if (!WarnSystem.Config.ShouldCacheMySQLData)
+            {
+                Task.Run(async () =>
+                {
+                    await SQLStorage.InsertAsync(warn);
+                    TaskDispatcher.QueueOnMainThread(() => 
+                    {
+                        WarnSystem.Instance.OnWarned(new CSteamID(warn.owner), new CSteamID(warn.moderatorSteamID64), warn.reason);
+                    });
+                });
+                return;
+            }
             if (Data == null) return;
-            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == SteamID);
+            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == warn.owner);
             if (WarnGroup == null)
             {
                 WarnGroup = new WarnGroup
                 {
-                    SteamID = SteamID,
+                    SteamID = warn.owner,
                     Warnings = new List<Warn>() { warn }
                 };
                 Data.Add(WarnGroup);
@@ -107,10 +123,14 @@ namespace WarnSystem.Database
             WarnGroup.Warnings.Add(warn);
         }
 
-        public void RemoveWarn(ulong SteamID, int index)
+        public void RemoveWarn(int index, WarnGroup WarnGroup)
         {
+            if (!WarnSystem.Config.ShouldCacheMySQLData)
+            {
+                Task.Run(async () => await SQLStorage.DeleteAsync(WarnGroup.Warnings[index]));
+                return;
+            }
             if (Data == null) return;
-            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == SteamID);
             if (WarnGroup == null)
             {
                 Logger.LogError("[WarnSystem] Failed to Remove Warning, Player Does not have any Warnings!");
@@ -125,10 +145,17 @@ namespace WarnSystem.Database
             }
         }
 
-        public void ClearWarns(ulong SteamID)
+        public void ClearWarns(WarnGroup WarnGroup)
         {
+            if (!WarnSystem.Config.ShouldCacheMySQLData)
+            {
+                foreach (Warn warn in WarnGroup.Warnings)
+                {
+                    Task.Run(async () => await SQLStorage.DeleteAsync(warn));
+                }
+                return;
+            }
             if (Data == null) return;
-            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == SteamID);
             if (WarnGroup == null)
             {
                 Logger.LogError("[WarnSystem] Failed to Clear Warnings, Player Does not have any Warnings!");
@@ -138,11 +165,18 @@ namespace WarnSystem.Database
             Data.Remove(WarnGroup);
         }
 
+        public async Task<WarnGroup> GetWarnGroupAsync(ulong SteamID)
+        {
+            var data = await SQLStorage.ReadWarnsAsync(SteamID);
+            if (data.Count == 0) return null;
+            return ConvertData(data)[0];
+        }
+
         public void SetSaveData(List<WarnGroup> newData)
         {
-            Data = newData;
+            if (WarnSystem.Config.ShouldCacheMySQLData) Data = newData;
             DeletedData = new List<Warn>();
-            SaveData();
+            SaveData(newData);
         }
     }
 }

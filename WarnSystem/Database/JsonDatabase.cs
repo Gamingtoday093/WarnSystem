@@ -40,14 +40,14 @@ namespace WarnSystem.Database
             }
         }
 
-        public void AddWarn(ulong SteamID64, Warn warn)
+        public void AddWarn(Warn warn)
         {
-            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == SteamID64);
+            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == warn.owner);
             if (WarnGroup == null)
             {
                 WarnGroup = new WarnGroup
                 {
-                    SteamID = SteamID64,
+                    SteamID = warn.owner,
                     Warnings = new List<Warn>() { warn }
                 };
                 Data.Add(WarnGroup);
@@ -57,9 +57,8 @@ namespace WarnSystem.Database
             WarnGroup.Warnings.Add(warn);
         }
 
-        public void RemoveWarn(ulong SteamID64, int index)
+        public void RemoveWarn(int index, WarnGroup WarnGroup)
         {
-            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == SteamID64);
             if (WarnGroup == null)
             {
                 Logger.LogError("[WarnSystem] Failed to Remove Warning, Player Does not have any Warnings!");
@@ -73,9 +72,8 @@ namespace WarnSystem.Database
             }
         }
 
-        public void ClearWarns(ulong SteamID64)
+        public void ClearWarns(WarnGroup WarnGroup)
         {
-            var WarnGroup = Data.FirstOrDefault(x => x.SteamID == SteamID64);
             if (WarnGroup == null)
             {
                 Logger.LogError("[WarnSystem] Failed to Clear Warnings, Player Does not have any Warnings!");
