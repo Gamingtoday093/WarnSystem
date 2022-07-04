@@ -3,6 +3,7 @@ using Rocket.Core.Logging;
 using Rocket.Core.Utils;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
+using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -49,7 +50,7 @@ namespace WarnSystem.Commands
                 return;
             }
 
-            var targetplayerCharacterName = targetplayer?.CharacterName ?? validCSteamID.ToString();
+            var targetplayerCharacterName = targetplayer?.CharacterName ?? Provider.clients.FirstOrDefault(c => c.playerID.steamID == validCSteamID)?.playerID?.characterName ?? validCSteamID.ToString();
             var targetplayerCSteamID = targetplayer?.CSteamID ?? validCSteamID;
 
             if (!isConsole && targetplayerCSteamID == player.CSteamID && !player.IsAdmin)
@@ -58,72 +59,41 @@ namespace WarnSystem.Commands
                 return;
             }
 
+            WarnGroup WarnGroup;
             int index = -1;
             if (WarnSystem.DatabaseSystem == EDatabase.MYSQL && !WarnSystem.Config.ShouldCacheMySQLData)
             {
-                bool ShouldReturn = false;
-                ThreadPool.QueueUserWorkItem(async (_) =>
-                {
-                    var WarnGroup = await WarnSystem.Instance.SQLDatabase.GetWarnGroupAsync(targetplayerCSteamID.m_SteamID);
-                    TaskDispatcher.QueueOnMainThread(() =>
-                    {
-                        if (WarnGroup == null)
-                        {
-                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
-                            ShouldReturn = true;
-                            return;
-                        }
-
-                        if (!int.TryParse(command[1], out index))
-                        {
-                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelFailedParse"), WarnSystem.Instance.MessageColour);
-                            ShouldReturn = true;
-                            return;
-                        }
-
-                        index -= WarnSystem.Config.IndexOffset;
-
-                        if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
-                        {
-                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
-                            ShouldReturn = true;
-                            return;
-                        }
-
-                        WarnSystem.Instance.WarnService.RemoveWarn(index, WarnGroup);
-
-                        index += WarnSystem.Config.IndexOffset;
-                    });
-                });
-                if (ShouldReturn) return;
+                WarnGroup = Task.Run(async () => await WarnSystem.Instance.SQLDatabase.GetWarnGroupAsync(targetplayerCSteamID.m_SteamID)).Result;
             }
             else
             {
-                var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
-                if (WarnGroup == null)
-                {
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
-                    return;
-                }
-
-                if (!int.TryParse(command[1], out index))
-                {
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelFailedParse"), WarnSystem.Instance.MessageColour);
-                    return;
-                }
-
-                index -= WarnSystem.Config.IndexOffset;
-
-                if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
-                {
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
-                    return;
-                }
-
-                WarnSystem.Instance.WarnService.RemoveWarn(index, WarnGroup);
-
-                index += WarnSystem.Config.IndexOffset;
+                WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
             }
+
+            if (WarnGroup == null)
+            {
+                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
+                return;
+            }
+
+            if (!int.TryParse(command[1], out index))
+            {
+                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelFailedParse"), WarnSystem.Instance.MessageColour);
+                return;
+            }
+
+            index -= WarnSystem.Config.IndexOffset;
+
+            if (index > (WarnGroup.Warnings.Count - 1) | index < 0)
+            {
+                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelOutRange"), WarnSystem.Instance.MessageColour);
+                return;
+            }
+
+            WarnSystem.Instance.WarnService.RemoveWarn(index, WarnGroup);
+
+            index += WarnSystem.Config.IndexOffset;
+            
 
             string playerCharacterName = isConsole ? "CONSOLE" : (player.CharacterName == "CONSOLE" ? "CONSOLE (Player)" : player.CharacterName);
             if (targetplayer?.Player != null) UnturnedChat.Say(targetplayer, WarnSystem.Instance.Translate("WarndelSuccessTarget", playerCharacterName), WarnSystem.Instance.MessageColour);
@@ -135,7 +105,7 @@ namespace WarnSystem.Commands
             }
             if (WarnSystem.Config.DiscordWebhookURL.StartsWith("https://discord.com/api/webhooks/"))
             {
-                var task = DiscordWebhook.SendDiscordWebhook(WarnSystem.Config.DiscordWebhookURL, DiscordWebhook.FormatDiscordWebhook(
+                var task = DiscordWebhook.SendDiscordWebhook(WarnSystem.Config.DiscordWebhookURL, DiscordWebhook.FormatDiscordWebhookWarnDelete(
                     "Warn System",
                     "https://unturnedstore.com/api/images/896",
                     "Player Warning Removed",
@@ -145,7 +115,8 @@ namespace WarnSystem.Commands
                     targetplayerCharacterName,
                     targetplayerCSteamID.ToString(),
                     playerCharacterName,
-                    string.Empty,
+                    WarnGroup.Warnings[index - WarnSystem.Config.IndexOffset],
+                    Provider.serverName,
                     SteamGameServer.GetPublicIP().ToString()
                     ));
 

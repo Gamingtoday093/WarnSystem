@@ -12,6 +12,7 @@ using WarnSystem.Connections;
 using Steamworks;
 using WarnSystem.Services;
 using WarnSystem.Models;
+using SDG.Unturned;
 
 namespace WarnSystem.Commands
 {
@@ -73,8 +74,7 @@ namespace WarnSystem.Commands
             }
             if (WarnSystem.Config.DiscordWebhookURL.StartsWith("https://discord.com/api/webhooks/"))
             {
-                Logger.Log("Sending Discord Webhook");
-                var task = DiscordWebhook.SendDiscordWebhook(WarnSystem.Config.DiscordWebhookURL, DiscordWebhook.FormatDiscordWebhook(
+                var task = DiscordWebhook.SendDiscordWebhook(WarnSystem.Config.DiscordWebhookURL, DiscordWebhook.FormatDiscordWebhookWarn(
                     "Warn System",
                     "https://unturnedstore.com/api/images/896",
                     "Player Warned",
@@ -85,6 +85,7 @@ namespace WarnSystem.Commands
                     targetplayerCSteamID.ToString(),
                     playerCharacterName,
                     reason,
+                    Provider.serverName,
                     SteamGameServer.GetPublicIP().ToString()
                     ));
                 

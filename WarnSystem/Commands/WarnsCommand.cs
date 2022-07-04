@@ -102,15 +102,9 @@ namespace WarnSystem.Commands
                         var WarnGroup = await WarnSystem.Instance.SQLDatabase.GetWarnGroupAsync(targetplayerCSteamID.m_SteamID);
                         TaskDispatcher.QueueOnMainThread(() =>
                         {
-                            if (WarnGroup == null)
+                            if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
                             {
                                 UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
-                                return;
-                            }
-
-                            if (WarnGroup.Warnings.Count <= 0)
-                            {
-                                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
                                 return;
                             }
 
@@ -121,15 +115,9 @@ namespace WarnSystem.Commands
                 else
                 {
                     var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
-                    if (WarnGroup == null)
+                    if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
                     {
                         UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
-                        return;
-                    }
-
-                    if (WarnGroup.Warnings.Count <= 0)
-                    {
-                        UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
                         return;
                     }
 
