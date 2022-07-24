@@ -82,7 +82,7 @@ namespace WarnSystem.Commands
                 }
                 else
                 {
-                    var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == player.CSteamID.m_SteamID);
+                    var WarnGroup = WarnSystem.Instance.GetWarnGroupFromData(player.CSteamID.m_SteamID);
                     if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
                     {
                         UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
@@ -149,7 +149,8 @@ namespace WarnSystem.Commands
                 }
                 else
                 {
-                    var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
+                    var WarnGroup = WarnSystem.Instance.GetWarnGroupFromData(targetplayerCSteamID.m_SteamID);
+
                     if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
                     {
                         UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);

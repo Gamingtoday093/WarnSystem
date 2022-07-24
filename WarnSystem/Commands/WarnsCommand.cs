@@ -48,38 +48,26 @@ namespace WarnSystem.Commands
                         var WarnGroup = await WarnSystem.Instance.SQLDatabase.GetWarnGroupAsync((ulong)player.CSteamID);
                         TaskDispatcher.QueueOnMainThread(() =>
                         {
-                            if (WarnGroup == null)
+                            if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
                             {
                                 UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
                                 return;
                             }
 
-                            if (WarnGroup.Warnings.Count <= 0)
-                            {
-                                UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
-                                return;
-                            }
-
-                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsList", WarnGroup.Warnings.Count, string.Join(", ", WarnGroup.Warnings.Select(w => w.reason))), WarnSystem.Instance.MessageColour);
+                            DisplayWarnings(caller, WarnGroup);
                         });
                     });
                 }
                 else
                 {
-                    var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == player.CSteamID.m_SteamID);
-                    if (WarnGroup == null)
+                    var WarnGroup = WarnSystem.Instance.GetWarnGroupFromData(player.CSteamID.m_SteamID);
+                    if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
                     {
                         UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
                         return;
                     }
 
-                    if (WarnGroup.Warnings.Count <= 0)
-                    {
-                        UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsNoWarns"), WarnSystem.Instance.MessageColour);
-                        return;
-                    }
-
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsList", WarnGroup.Warnings.Count, string.Join(", ", WarnGroup.Warnings.Select(w => w.reason))), WarnSystem.Instance.MessageColour);
+                    DisplayWarnings(caller, WarnGroup);
                 }
             } else
             {
@@ -108,20 +96,50 @@ namespace WarnSystem.Commands
                                 return;
                             }
 
-                            UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsListT", targetplayerCharacterName, WarnGroup.Warnings.Count, string.Join(", ", WarnGroup.Warnings.Select(w => w.reason))), WarnSystem.Instance.MessageColour);
+                            DisplayWarnings(caller, WarnGroup, targetplayerCharacterName);
                         });
                     });
                 }
                 else
                 {
-                    var WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
+                    var WarnGroup = WarnSystem.Instance.GetWarnGroupFromData(targetplayerCSteamID.m_SteamID);
                     if (WarnGroup == null || WarnGroup.Warnings.Count <= 0)
                     {
                         UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarndelNoWarns"), WarnSystem.Instance.MessageColour);
                         return;
                     }
 
-                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsListT", targetplayerCharacterName, WarnGroup.Warnings.Count, string.Join(", ", WarnGroup.Warnings.Select(w => w.reason))), WarnSystem.Instance.MessageColour);
+                    DisplayWarnings(caller, WarnGroup, targetplayerCharacterName);
+                }
+            }
+        }
+
+        private void DisplayWarnings(IRocketPlayer caller, WarnGroup WarnGroup, string TargetPlayerCharacterName = null)
+        {
+            if (WarnSystem.Config.DisplayWarningsInline)
+            {
+                if (string.IsNullOrEmpty(TargetPlayerCharacterName))
+                {
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsList", WarnGroup.Warnings.Count, string.Join(", ", WarnGroup.Warnings.Select(w => w.reason))), WarnSystem.Instance.MessageColour);
+                }
+                else
+                {
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsListT", TargetPlayerCharacterName, WarnGroup.Warnings.Count, string.Join(", ", WarnGroup.Warnings.Select(w => w.reason))), WarnSystem.Instance.MessageColour);
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(TargetPlayerCharacterName))
+                {
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsList", WarnGroup.Warnings.Count, string.Empty), WarnSystem.Instance.MessageColour);
+                }
+                else
+                {
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsListT", TargetPlayerCharacterName, WarnGroup.Warnings.Count, string.Empty), WarnSystem.Instance.MessageColour);
+                }
+                foreach (string WarnReason in WarnGroup.Warnings.Select(w => w.reason))
+                {
+                    UnturnedChat.Say(caller, WarnSystem.Instance.Translate("WarnsListItem", WarnReason), WarnSystem.Instance.MessageColour);
                 }
             }
         }

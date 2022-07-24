@@ -18,8 +18,10 @@ namespace WarnSystem
         public bool ReplicateSharedServersPunishments { get; set; }
         public bool ShouldRepeatHighestPunishmentIfAbove { get; set; }
         public int IndexOffset { get; set; }
+        public bool DisplayWarningsInline { get; set; }
         public bool ShouldLogConsole { get; set; }
         public string DiscordWebhookURL { get; set; }
+        public ExpireWarnings ExpireWarnings { get; set; }
         [XmlArrayItem("Punishment")]
         public Punishment[] Punishments { get; set; }
         public void LoadDefaults()
@@ -31,10 +33,34 @@ namespace WarnSystem
             ReplicateSharedServersPunishments = false;
             ShouldRepeatHighestPunishmentIfAbove = true;
             IndexOffset = 1;
+            DisplayWarningsInline = true;
             ShouldLogConsole = true;
             DiscordWebhookURL = "Webhook";
+            ExpireWarnings = new ExpireWarnings()
+            {
+                Enabled = false,
+                DurationUntilExpiring = "6m"
+            };
             Punishments = new Punishment[]
             {
+                new Punishment()
+                {
+                    WarnThreshold = 1,
+                    Type = "tell",
+                    Text = "Hey don't Break our Rules! {Reason}? Not Cool. Now see what you've done"
+                },
+                new Punishment()
+                {
+                    WarnThreshold = 1,
+                    Type = "command",
+                    Command = "say \"Because {TargetName} Broke a Rule the Weather will now be set to Raining ;(\""
+                },
+                new Punishment()
+                {
+                    WarnThreshold = 1,
+                    Type = "command",
+                    Command = "weather Storm"
+                },
                 new Punishment()
                 {
                     WarnThreshold = 2,

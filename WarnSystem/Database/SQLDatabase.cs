@@ -145,6 +145,11 @@ namespace WarnSystem.Database
             }
         }
 
+        public void RemoveWarn(Warn Warning)
+        {
+            Task.Run(async () => await SQLStorage.DeleteAsync(Warning));
+        }
+
         public void ClearWarns(WarnGroup WarnGroup)
         {
             if (!WarnSystem.Config.ShouldCacheMySQLData)
@@ -169,7 +174,16 @@ namespace WarnSystem.Database
         {
             var data = await SQLStorage.ReadWarnsAsync(SteamID);
             if (data.Count == 0) return null;
-            return ConvertData(data)[0];
+            WarnGroup warnGroup = ConvertData(data)[0];
+
+            if (WarnSystem.Instance.TryExpireWarnings(warnGroup, out List<Warn> newWarnings, out List<Warn> expiredWarnings))
+            {
+                warnGroup.Warnings = newWarnings;
+                foreach (Warn warn in expiredWarnings)
+                    RemoveWarn(warn);
+            }
+
+            return warnGroup;
         }
 
         public void SetSaveData(List<WarnGroup> newData)

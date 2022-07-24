@@ -66,7 +66,7 @@ namespace WarnSystem.Commands
             }
             else
             {
-                WarnGroup = WarnSystem.Instance.Data.FirstOrDefault(x => x.SteamID == targetplayerCSteamID.m_SteamID);
+                WarnGroup = WarnSystem.Instance.GetWarnGroupFromData(targetplayerCSteamID.m_SteamID);
             }
 
             if (WarnGroup == null)
