@@ -18,6 +18,7 @@ using UnityEngine;
 using Rocket.Unturned;
 using System.Threading;
 using Rocket.Core.Utils;
+using WarnSystem.Extensions;
 
 namespace WarnSystem
 {
@@ -138,8 +139,8 @@ namespace WarnSystem
                         if (duration <= uint.MinValue) break;
                         Provider.requestBanPlayer(CSteamID.Nil,
                             PlayerToBan,
-                            SDG.Unturned.SteamGameServerNetworkingUtils.getIPv4AddressOrZero(PlayerToBan),
-                            PlayerTool.getSteamPlayer(PlayerToBan)?.playerID?.GetHwids(),
+                            player?.Player?.channel.owner.transportConnection.GetIPv4AddressOrZero() ?? 0u,
+                            player?.Player?.channel.owner.playerID.GetHwids(),
                             Translate("WarnPunishReason", punishment.WarnThreshold, Reason),
                             duration > uint.MaxValue ? uint.MaxValue : (uint)duration);
                         return;
@@ -148,7 +149,7 @@ namespace WarnSystem
                         R.Commands.Execute(new ConsolePlayer(), FormatPunishmentText(punishment.Command, PlayerToBan, player, Reason));
                         break;
                     case "tell":
-                        if (ReplicatedPunishment) break;
+                        if (ReplicatedPunishment || player?.Player == null) break;
                         UnturnedChat.Say(PlayerToBan, FormatPunishmentText(punishment.Text, PlayerToBan, player, Reason), MessageColour);
                         break;
                     default:

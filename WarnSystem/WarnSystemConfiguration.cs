@@ -21,6 +21,7 @@ namespace WarnSystem
         public bool DisplayWarningsInline { get; set; }
         public bool ShouldLogConsole { get; set; }
         public string DiscordWebhookURL { get; set; }
+        public bool DiscordWebhookHideServerIP { get; set; }
         public ExpireWarnings ExpireWarnings { get; set; }
         [XmlArrayItem("Punishment")]
         public Punishment[] Punishments { get; set; }
@@ -36,6 +37,7 @@ namespace WarnSystem
             DisplayWarningsInline = true;
             ShouldLogConsole = true;
             DiscordWebhookURL = "Webhook";
+            DiscordWebhookHideServerIP = false;
             ExpireWarnings = new ExpireWarnings()
             {
                 Enabled = false,

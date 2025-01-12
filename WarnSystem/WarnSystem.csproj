@@ -139,6 +139,7 @@
     <Compile Include="Database\SQLDatabase.cs" />
     <Compile Include="Database\JsonDatabase.cs" />
     <Compile Include="Events\OnWarnHandler.cs" />
+    <Compile Include="Extensions\ITransportConnectionExtensions.cs" />
     <Compile Include="Models\EDatabase.cs" />
     <Compile Include="Models\ExpireWarnings.cs" />
     <Compile Include="Models\Punishment.cs" />

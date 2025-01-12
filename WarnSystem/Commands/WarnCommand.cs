@@ -86,7 +86,7 @@ namespace WarnSystem.Commands
                     playerCharacterName,
                     reason,
                     Provider.serverName,
-                    SteamGameServer.GetPublicIP().ToString()
+                    WarnSystem.Config.DiscordWebhookHideServerIP ? "Hidden" : SteamGameServer.GetPublicIP().ToString()
                     ));
                 
                 Task.Run(async() => await task);
